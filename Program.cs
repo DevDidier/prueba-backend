@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql;
-using Microsoft.Extensions.DependencyInjection;
 using aplicationdbcontext;
 using prueba_backend.Models.Services;
+using prueba_backend.Models.ServicesToken;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Agrega servicios al contenedor.
@@ -10,6 +10,7 @@ var connectionString = builder.Configuration.GetConnectionString("MySqlConnectio
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -24,8 +25,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
 
 app.MapControllers();
 

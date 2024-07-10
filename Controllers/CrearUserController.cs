@@ -6,11 +6,10 @@ using prueba_backend.Models.Services;
 
 [ApiController]
 [Route("[controller]")]
-
-public class LoginController : ControllerBase
+public class CrearUserController : ControllerBase
 {
     private readonly IUsuarioService _usuarioService;
-    public LoginController(IUsuarioService usuarioService)
+    public CrearUserController(IUsuarioService usuarioService)
     {
         _usuarioService = usuarioService;
     }
@@ -25,7 +24,7 @@ public class LoginController : ControllerBase
                 return StatusCode(404, new { code = 120, msm = "Usuario o contraseña no pueden estar vacios" });
             }
 
-            var response = _usuarioService.ValidateUser(request.Usuario, request.Contrasena);
+            var response = _usuarioService.CreateUser(request.Usuario, request.Contrasena);
 
             dynamic dynamicResponse = response;
             var status = (int)dynamicResponse.status;
@@ -38,7 +37,7 @@ public class LoginController : ControllerBase
         catch (Exception error)
         {
             Console.WriteLine($"Error controlador Login: {error}");
-            return StatusCode(500, new { code = 130, msm = $"Hubo un error {error}" });
+            return StatusCode(500, new { code = 130, msm = "Hubo un error" });
         }
     }
 }
