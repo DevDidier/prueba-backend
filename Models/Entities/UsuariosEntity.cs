@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace prueba_backend.Models.Entitys.Usuarios
+namespace prueba_backend.Models.Entities.Usuarios
 {
     [Table("usuarios")]
     public class UsuariosEntity

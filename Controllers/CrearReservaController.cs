@@ -7,10 +7,11 @@ using System.Diagnostics;
 
 [ApiController]
 [Route("[controller]")]
-public class CrearUserController : ControllerBase
+
+public class CrearReservaController : ControllerBase
 {
     private readonly IUsuarioService _usuarioService;
-    public CrearUserController(IUsuarioService usuarioService)
+    public CrearReservaController(IUsuarioService usuarioService)
     {
         _usuarioService = usuarioService;
     }
@@ -25,14 +26,22 @@ public class CrearUserController : ControllerBase
                 return StatusCode(404, new { code = 120, msm = "Usuario o contraseña no pueden estar vacios" });
             }
 
-            var response = _usuarioService.CreateUser(request.Usuario, request.Contrasena);
+            var response = _usuarioService.ValidateUser(request.Usuario, request.Contrasena);
 
             dynamic dynamicResponse = response;
             var status = (int)dynamicResponse.status;
             var code = (int)dynamicResponse.code;
             var msm = (string)dynamicResponse.msm;
 
-            return StatusCode(status, new { code, msm });
+            string token = "";
+
+            var tokenProperty = response.GetType().GetProperty("token");
+            if (tokenProperty != null)
+            {
+                token = (string)dynamicResponse.token;
+            }
+
+            return StatusCode(status, new { code, msm, token });
 
         }
         catch (Exception error)
@@ -42,4 +51,3 @@ public class CrearUserController : ControllerBase
         }
     }
 }
-

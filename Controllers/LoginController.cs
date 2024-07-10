@@ -3,6 +3,7 @@ using System;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc;
 using prueba_backend.Models.Services;
+using System.Diagnostics;
 
 [ApiController]
 [Route("[controller]")]
@@ -30,15 +31,23 @@ public class LoginController : ControllerBase
             dynamic dynamicResponse = response;
             var status = (int)dynamicResponse.status;
             var code = (int)dynamicResponse.code;
-            var msm = (string)dynamicResponse.msm;
+            var msm = (string)dynamicResponse.msm; 
+            
+            string token = "";
 
-            return StatusCode(status, new { code, msm });
+            var tokenProperty = response.GetType().GetProperty("token");
+            if (tokenProperty != null)
+            {
+                token = (string)dynamicResponse.token;
+            }
+
+            return StatusCode(status, new { code, msm, token });
 
         }
         catch (Exception error)
         {
-            Console.WriteLine($"Error controlador Login: {error}");
-            return StatusCode(500, new { code = 130, msm = $"Hubo un error {error}" });
+            Debug.WriteLine($"Error controlador Login: {error}");
+            return StatusCode(500, new { code = 130, msm = "Hubo un error" });
         }
     }
 }

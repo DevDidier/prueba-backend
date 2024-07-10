@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using prueba_backend.Models.Entitys.Usuarios;
+using prueba_backend.Models.Entities.Usuarios;
 
 namespace aplicationdbcontext
 { 

@@ -39,7 +39,7 @@ namespace prueba_backend.Models.ServicesToken
             catch (Exception ex)
             {
                 Debug.WriteLine("error en token" + ex);
-                return "error";
+                return null;
             }
         }
     }
