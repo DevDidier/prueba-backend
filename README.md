@@ -9,7 +9,7 @@ Este proyecto es una API desarrollada en C# .NET para la gestión de reservas de
 ### Configuración
 * Clona el repositorio desde GitHub.
 * Abre el proyecto en tu entorno de desarrollo.
-* Configura las variables de entorno para conexion a base de datos que se entregaran en el correo de respuesta.
+* Configura las variables de entorno para clave de token y conexion a base de datos que se entregaran en el correo de respuesta.
 
 ### Ejecución
 
