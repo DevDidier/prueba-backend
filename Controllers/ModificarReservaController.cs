@@ -7,26 +7,26 @@ using System.Diagnostics;
 
 [ApiController]
 [Route("[controller]")]
-public class CrearReservaController : ControllerBase
+public class ModificarReservaController : ControllerBase
 {
     private readonly IUsuarioService _usuarioService;
-    public CrearReservaController(IUsuarioService usuarioService)
+    public ModificarReservaController(IUsuarioService usuarioService)
     {
         _usuarioService = usuarioService;
     }
 
     [HttpPost]
-    public IActionResult Post([FromBody] CrearReservaRequest request)
+    public IActionResult Post([FromBody] ModifyReservaRequest request)
     {
         try
         {
-            if (request == null || request.idUser == 0 || request.idRoom == 0 
+            if (request == null || request.idReserva == 0
                 || request.fechaini == default(DateTime) || request.fechafin == default(DateTime))
             {
                 return StatusCode(404, new { code = 120, msm = "Datos vacios" });
             }
 
-            var response = _usuarioService.CrearReserva(request.idUser, request.idRoom, request.fechaini, request.fechafin);
+            var response = _usuarioService.ModificarReserva(request.idReserva, request.fechaini, request.fechafin);
 
             dynamic dynamicResponse = response;
             var status = (int)dynamicResponse.status;

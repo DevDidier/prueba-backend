@@ -4,6 +4,7 @@ using BCrypt.Net;
 using prueba_backend.Models.Entities.Usuarios;
 using prueba_backend.Models.ServicesToken;
 using System.Diagnostics;
+using prueba_backend.Models.Entities.Reservas;
 
 namespace prueba_backend.Models.Services
 {
@@ -23,9 +24,6 @@ namespace prueba_backend.Models.Services
             try
             {
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
-
-                Debug.WriteLine("sin " + password);
-                Debug.WriteLine("clave" + hashedPassword);
 
                 var user = _context.Usuarios
                 .FirstOrDefault(u => u.username == username);
@@ -75,7 +73,6 @@ namespace prueba_backend.Models.Services
             {
                 var user = _context.Usuarios
                .FirstOrDefault(u => u.username == username);
-                Console.WriteLine($"user {user}");
 
                 if (user == null)
                 {
@@ -113,15 +110,195 @@ namespace prueba_backend.Models.Services
             }
         }
 
-        public object CrearReserva(int idUser, int idRoom)
+        public object CrearReserva(int idUser, int idRoom, DateTime fechaini, DateTime fechafin)
         {
             try
             {
+                //validar si existe una reserva en esas fechas
+                var reservaExistente = _context.Reservas
+                .FirstOrDefault(r => r.id_habitacion == idRoom && r.estado == 0 &&
+                                ((r.fecha_inicio <= fechaini && r.fecha_fin >= fechaini) ||
+                                 (r.fecha_inicio <= fechafin && r.fecha_fin >= fechafin) ||
+                                 (r.fecha_inicio >= fechaini && r.fecha_fin <= fechafin)));
 
+                if (reservaExistente != null)
+                {
+                    return new { status = 400, code = 110, msm = "Ya existe una reserva en las fechas seleccionadas." };
+                }
+
+                // Crear la nueva reserva si no existe una reserva superpuesta
+                var nuevaReserva = new ReservasEntity
+                {
+                    id_user = idUser,
+                    id_habitacion = idRoom,
+                    fecha_inicio = fechaini,
+                    fecha_fin = fechafin,
+                    estado = 0, // 0 activo && 1 innactivo
+                    fechasys = DateTime.Now
+                };
+
+                _context.Reservas.Add(nuevaReserva);
+                _context.SaveChanges();
+
+                return new { status = 200, code = 100, msm = "Reserva Creada" };
             }
             catch (Exception error)
             {
                 Debug.WriteLine($"error service crear reserva {error}");
+                return new { status = 500, code = 130, msm = "Server Error" };
+            }
+        }
+
+        public object VerReservas(int idUser)
+        {
+            try
+            {
+                // Traer todas las reservas que tengan id_user = idUser
+                var reservas = _context.Reservas
+                                       .Where(r => r.id_user == idUser)
+                                       .ToList();
+                if (!reservas.Any())
+                {
+                    return new { status = 404, code = 110, msm = "No se encontraron reservas", data = new List<object>() };
+                }
+
+                // Convertir las reservas a formato JSON
+                var data = reservas.Select(r => new
+                {
+                    r.id,
+                    r.id_user,
+                    r.id_habitacion,
+                    r.estado,
+                    r.fecha_inicio,
+                    r.fecha_fin,
+                    r.fechasys
+                }).ToList();
+
+                return new { status = 200, code = 100, msm = "Ok", data };
+            }
+            catch (Exception error)
+            {
+                Debug.WriteLine($"error service ver reservas {error}");
+                return new { status = 500, code = 130, msm = "Server Error", data = new List<object>() };
+            }
+        }
+
+        public object ModificarReserva(int idReserva, DateTime nuevaFechaInicio, DateTime nuevaFechaFin)
+        {
+            try
+            {
+                // Buscar la reserva por su ID
+                var reservaExistente = _context.Reservas.FirstOrDefault(r => r.id == idReserva);
+
+                // Validar si la reserva existe
+                if (reservaExistente == null)
+                {
+                    return new { status = 404, code = 120, msm = "Reserva no encontrada" };
+                }
+
+                // Validar si hay alguna reserva existente en las nuevas fechas
+                var reservaEnNuevasFechas = _context.Reservas
+                    .FirstOrDefault(r =>
+                        r.id_habitacion == reservaExistente.id_habitacion &&
+                        r.id != idReserva && // Excluir la reserva actual
+                        r.estado == 0 && //     Reserva activa
+                        (
+                            (r.fecha_inicio <= nuevaFechaInicio && r.fecha_fin >= nuevaFechaInicio) ||
+                            (r.fecha_inicio <= nuevaFechaFin && r.fecha_fin >= nuevaFechaFin) ||
+                            (r.fecha_inicio >= nuevaFechaInicio && r.fecha_fin <= nuevaFechaFin)
+                        ));
+
+                if (reservaEnNuevasFechas != null)
+                {
+                    return new { status = 400, code = 110, msm = "Ya existe una reserva en las nuevas fechas seleccionadas." };
+                }
+
+                // Actualizar las fechas de la reserva existente
+                reservaExistente.fecha_inicio = nuevaFechaInicio;
+                reservaExistente.fecha_fin = nuevaFechaFin;
+
+                _context.SaveChanges();
+
+                return new { status = 200, code = 100, msm = "Reserva modificada exitosamente" };
+            }
+            catch (Exception error)
+            {
+                Debug.WriteLine($"Error al modificar reserva: {error}");
+                return new { status = 500, code = 130, msm = "Error en el servidor" };
+            }
+        }
+
+        public object VerHabitaciones()
+        {
+            try
+            {
+                var habitaciones = _context.Habitaciones
+                                           .Include(h => h.Reservas)
+                                           .Where(h => h.Reservas.Any(r => r.estado == 0))
+                                           .ToList();
+
+                var data = habitaciones.Select(h => new
+                {
+                    h.id,
+                    h.habitacion,
+                    h.imagen,
+                    reservas = h.Reservas.Select(r => new
+                    {
+                        r.fecha_inicio,
+                        r.fecha_fin,
+                        r.estado,
+                        r.id_user,
+                        r.fechasys
+                    }).ToList()
+                }).ToList();
+
+                return new { status = 200, code = 100, msm = "Ok", data };
+            }
+            catch (Exception error)
+            {
+                Debug.WriteLine($"error service ver reservas {error}");
+                return new { status = 500, code = 130, msm = "Server Error", data = new List<object>() };
+            }
+        }
+
+        public object VerHabitacion(int idRoom)
+        {
+            try
+            {
+                // Traer la habitación por su ID junto con sus reservas
+                var habitacion = _context.Habitaciones
+                                         .Include(h => h.Reservas)
+                                         .Where(h => h.Reservas.Any(r => r.estado == 0))
+                                         .FirstOrDefault(h => h.id == idRoom);
+
+                // Verificar si la habitación existe
+                if (habitacion == null)
+                {
+                    return new { status = 404, code = 110, msm = "No se encontro la habitación", data = new { } };
+                }
+
+                // Proyectar los datos en el formato deseado
+                var data = new
+                {
+                    habitacion.id,
+                    habitacion.habitacion,
+                    habitacion.imagen,
+                    reservas = habitacion.Reservas.Select(r => new
+                    {
+                        r.fecha_inicio,
+                        r.fecha_fin,
+                        r.estado,
+                        r.id_user,
+                        r.fechasys
+                    }).ToList()
+                };
+
+                return new { status = 200, code = 100, msm = "Ok", data };
+            }
+            catch (Exception error)
+            {
+                Debug.WriteLine($"Error al obtener la habitacion service: {error}");
+                return new { status = 500, code = 130, msm = "Server Error", data = new { } };
             }
         }
     }
