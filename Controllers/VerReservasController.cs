@@ -6,7 +6,7 @@ using prueba_backend.Models.Services;
 using System.Diagnostics;
 
 [ApiController]
-[Route("[controller]")]
+[Route("misreservas")]
 public class VerReservasController : ControllerBase
 {
     private readonly IUsuarioService _usuarioService;

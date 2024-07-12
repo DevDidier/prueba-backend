@@ -6,7 +6,7 @@ using prueba_backend.Models.Services;
 using System.Diagnostics;
 
 [ApiController]
-[Route("[controller]")]
+[Route("login")]
 
 public class LoginController : ControllerBase
 {

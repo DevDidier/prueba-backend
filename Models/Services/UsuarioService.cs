@@ -187,16 +187,13 @@ namespace prueba_backend.Models.Services
         {
             try
             {
-                // Buscar la reserva por su ID
                 var reservaExistente = _context.Reservas.FirstOrDefault(r => r.id == idReserva);
 
-                // Validar si la reserva existe
                 if (reservaExistente == null)
                 {
                     return new { status = 404, code = 120, msm = "Reserva no encontrada" };
                 }
 
-                // Validar si hay alguna reserva existente en las nuevas fechas
                 var reservaEnNuevasFechas = _context.Reservas
                     .FirstOrDefault(r =>
                         r.id_habitacion == reservaExistente.id_habitacion &&
@@ -213,7 +210,6 @@ namespace prueba_backend.Models.Services
                     return new { status = 400, code = 110, msm = "Ya existe una reserva en las nuevas fechas seleccionadas." };
                 }
 
-                // Actualizar las fechas de la reserva existente
                 reservaExistente.fecha_inicio = nuevaFechaInicio;
                 reservaExistente.fecha_fin = nuevaFechaFin;
 
@@ -232,24 +228,13 @@ namespace prueba_backend.Models.Services
         {
             try
             {
-                var habitaciones = _context.Habitaciones
-                                           .Include(h => h.Reservas)
-                                           .Where(h => h.Reservas.Any(r => r.estado == 0))
-                                           .ToList();
-
+                var habitaciones = _context.Habitaciones.ToList();
+          
                 var data = habitaciones.Select(h => new
                 {
                     h.id,
                     h.habitacion,
-                    h.imagen,
-                    reservas = h.Reservas.Select(r => new
-                    {
-                        r.fecha_inicio,
-                        r.fecha_fin,
-                        r.estado,
-                        r.id_user,
-                        r.fechasys
-                    }).ToList()
+                    h.imagen
                 }).ToList();
 
                 return new { status = 200, code = 100, msm = "Ok", data };
@@ -265,25 +250,21 @@ namespace prueba_backend.Models.Services
         {
             try
             {
-                // Traer la habitación por su ID junto con sus reservas
                 var habitacion = _context.Habitaciones
                                          .Include(h => h.Reservas)
-                                         .Where(h => h.Reservas.Any(r => r.estado == 0))
                                          .FirstOrDefault(h => h.id == idRoom);
 
-                // Verificar si la habitación existe
                 if (habitacion == null)
                 {
                     return new { status = 404, code = 110, msm = "No se encontro la habitación", data = new { } };
                 }
 
-                // Proyectar los datos en el formato deseado
                 var data = new
                 {
                     habitacion.id,
                     habitacion.habitacion,
                     habitacion.imagen,
-                    reservas = habitacion.Reservas.Select(r => new
+                    reservas = habitacion.Reservas.Where(r => r.estado == 0).Select(r => new
                     {
                         r.fecha_inicio,
                         r.fecha_fin,
@@ -299,6 +280,29 @@ namespace prueba_backend.Models.Services
             {
                 Debug.WriteLine($"Error al obtener la habitacion service: {error}");
                 return new { status = 500, code = 130, msm = "Server Error", data = new { } };
+            }
+        }
+
+        public object CancelarReserva(int idUser, int idReserva)
+        {
+            try
+            {
+                var reservaExistente = _context.Reservas.FirstOrDefault(r => r.id == idReserva && r.id_user == idUser);
+
+                if (reservaExistente == null)
+                {
+                    return new { status = 404, code = 120, msm = "Reserva no encontrada para el usuario especificado" };
+                }
+
+                _context.Reservas.Remove(reservaExistente); // Eliminar la reserva
+                _context.SaveChanges();
+
+                return new { status = 200, code = 100, msm = "Reserva eliminada exitosamente" };
+            }
+            catch (Exception error)
+            {
+                Debug.WriteLine($"Error al eliminar reserva: {error}");
+                return new { status = 500, code = 130, msm = "Error en el servidor al intentar eliminar la reserva" };
             }
         }
     }

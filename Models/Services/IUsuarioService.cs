@@ -9,5 +9,6 @@
         object ModificarReserva(int idReserva, DateTime nuevaFechaInicio, DateTime nuevaFechaFin);
         object VerHabitaciones();
         object VerHabitacion(int idRoom);
+        object CancelarReserva(int idUser, int idReservas);
     }
 }

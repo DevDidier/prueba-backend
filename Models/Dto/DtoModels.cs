@@ -20,4 +20,10 @@
         public DateTime fechaini { get; set; }
         public DateTime fechafin { get; set; }
     }
+
+    public class CancelReservaRequest
+    {
+        public int idUser { get; set; }
+        public int idReserva { get; set; }
+    }
 }

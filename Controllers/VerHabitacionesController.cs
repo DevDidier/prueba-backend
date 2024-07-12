@@ -4,9 +4,11 @@ using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc;
 using prueba_backend.Models.Services;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 
+[Authorize]
 [ApiController]
-[Route("[controller]")]
+[Route("habitaciones")]
 public class VerHabitacionesController : ControllerBase
 {
     private readonly IUsuarioService _usuarioService;

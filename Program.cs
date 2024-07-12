@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using aplicationdbcontext;
 using prueba_backend.Models.Services;
 using prueba_backend.Models.ServicesToken;
+using System.Text;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +13,40 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+// Configura la autenticación JWT
+var jwtSecret = builder.Configuration["JwtSecret"];
+if (string.IsNullOrEmpty(jwtSecret))
+{
+    throw new InvalidOperationException("jwt not found");
+}
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = false,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey((Convert.FromBase64String(jwtSecret)))
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Debug.WriteLine("Token inválido: " + context.Exception.Message);
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            Debug.WriteLine("Token válido.");
+            return Task.CompletedTask;
+        }
+    };
+});
 
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
@@ -25,6 +63,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Añade middleware para autenticación y autorización
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

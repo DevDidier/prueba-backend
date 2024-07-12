@@ -6,7 +6,7 @@ using prueba_backend.Models.Services;
 using System.Diagnostics;
 
 [ApiController]
-[Route("[controller]")]
+[Route("modificar_reserva")]
 public class ModificarReservaController : ControllerBase
 {
     private readonly IUsuarioService _usuarioService;
@@ -15,8 +15,8 @@ public class ModificarReservaController : ControllerBase
         _usuarioService = usuarioService;
     }
 
-    [HttpPost]
-    public IActionResult Post([FromBody] ModifyReservaRequest request)
+    [HttpPatch]
+    public IActionResult Patch([FromBody] ModifyReservaRequest request)
     {
         try
         {

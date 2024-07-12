@@ -6,26 +6,26 @@ using prueba_backend.Models.Services;
 using System.Diagnostics;
 
 [ApiController]
-[Route("crearusuario")]
-public class CrearUserController : ControllerBase
+[Route("cancelar_reserva")]
+public class CancelarReservaController : ControllerBase
 {
     private readonly IUsuarioService _usuarioService;
-    public CrearUserController(IUsuarioService usuarioService)
+    public CancelarReservaController(IUsuarioService usuarioService)
     {
         _usuarioService = usuarioService;
     }
 
-    [HttpPost]
-    public IActionResult Post([FromBody] UsuarioRequest request)
+    [HttpDelete]
+    public IActionResult Delete([FromBody] CancelReservaRequest request)
     {
         try
         {
-            if (request == null || string.IsNullOrEmpty(request.Usuario) || string.IsNullOrEmpty(request.Contrasena))
+            if (request.idUser == 0 || request.idReserva == 0)
             {
-                return StatusCode(404, new { code = 120, msm = "Usuario o contraseña no pueden estar vacios" });
+                return StatusCode(404, new { code = 120, msm = "Datos vacios" });
             }
 
-            var response = _usuarioService.CreateUser(request.Usuario, request.Contrasena);
+            var response = _usuarioService.CancelarReserva(request.idUser, request.idReserva);
 
             dynamic dynamicResponse = response;
             var status = (int)dynamicResponse.status;
@@ -42,4 +42,3 @@ public class CrearUserController : ControllerBase
         }
     }
 }
-
