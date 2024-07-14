@@ -6,7 +6,7 @@ using prueba_backend.Models.Services;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 
-[Authorize]
+//[Authorize]
 [ApiController]
 [Route("habitaciones")]
 public class VerHabitacionesController : ControllerBase

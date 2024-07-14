@@ -234,7 +234,10 @@ namespace prueba_backend.Models.Services
                 {
                     h.id,
                     h.habitacion,
-                    h.imagen
+                    h.imagen,
+                    h.nombre,
+                    h.valor,
+                    h.tipo,
                 }).ToList();
 
                 return new { status = 200, code = 100, msm = "Ok", data };
@@ -250,6 +253,7 @@ namespace prueba_backend.Models.Services
         {
             try
             {
+                var hoy = DateTime.Now;
                 var habitacion = _context.Habitaciones
                                          .Include(h => h.Reservas)
                                          .FirstOrDefault(h => h.id == idRoom);
@@ -264,7 +268,11 @@ namespace prueba_backend.Models.Services
                     habitacion.id,
                     habitacion.habitacion,
                     habitacion.imagen,
-                    reservas = habitacion.Reservas.Where(r => r.estado == 0).Select(r => new
+                    habitacion.nombre,
+                    habitacion.valor,
+                    habitacion.tipo,
+                    habitacion.descripcion,
+                    reservas = habitacion.Reservas.Where(r => r.estado == 0 && r.fecha_fin > hoy).Select(r => new
                     {
                         r.fecha_inicio,
                         r.fecha_fin,
