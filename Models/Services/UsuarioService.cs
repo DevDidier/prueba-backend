@@ -155,7 +155,8 @@ namespace prueba_backend.Models.Services
             {
                 // Traer todas las reservas que tengan id_user = idUser
                 var reservas = _context.Reservas
-                                       .Where(r => r.id_user == idUser)
+                                       .Include(h => h.Habitacion)
+                                       .Where(r => r.id_user == idUser && r.estado == 0)
                                        .ToList();
                 if (!reservas.Any())
                 {
@@ -171,7 +172,12 @@ namespace prueba_backend.Models.Services
                     r.estado,
                     r.fecha_inicio,
                     r.fecha_fin,
-                    r.fechasys
+                    r.fechasys,
+                    habitacion = new
+                    {
+                        r.Habitacion.nombre,
+                        r.Habitacion.habitacion
+                    }
                 }).ToList();
 
                 return new { status = 200, code = 100, msm = "Ok", data };
